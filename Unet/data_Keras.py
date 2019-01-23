@@ -275,7 +275,7 @@ class DataProcess(object):
 		np.save('../data_set/npydata/my_set_image.npy', my_set_image)
 		np.save('../data_set/npydata/my_set_label.npy', my_set_label)
 		print('Saving to .npy files done.')
-
+	#定义加载训练数据函数
 	def load_my_train_data(self):
 		print('-' * 30)
 		print('load train images...')
@@ -325,7 +325,7 @@ class DataProcess(object):
 		imgs_mask_train[imgs_mask_train > 0.5] = 1
 		imgs_mask_train[imgs_mask_train <= 0.5] = 0
 		return imgs_train, imgs_mask_train
-
+	#加载测试数据
 	def load_test_data(self):
 		print('-' * 30)
 		print('load test images...')

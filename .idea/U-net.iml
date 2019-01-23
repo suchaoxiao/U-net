@@ -7,7 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/data_set/test" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/data_set" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (venv)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

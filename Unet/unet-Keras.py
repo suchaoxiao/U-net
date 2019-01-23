@@ -12,7 +12,7 @@
 # Copyright (c) 2018, All Rights Reserved.
 #====#====#====#==== 
 '''
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint  #保存网络模型
 from keras.layers import merge, Conv2D, MaxPooling2D, UpSampling2D, Dropout, Softmax
 from keras.models import *
 from keras.optimizers import *
@@ -20,34 +20,34 @@ from keras.utils import to_categorical
 
 from Unet.data_Keras import DataProcess
 
-
+#定义一个unet的类，包括初始化和要完成的功能
 class myUnet(object):
-    def __init__(self, img_rows=512, img_cols=512):
+    def __init__(self, img_rows=512, img_cols=512): #初始化图片大小
         self.img_rows = img_rows
         self.img_cols = img_cols
-
+    #导入训练数据，
     def load_train_data(self):
         mydata = DataProcess(self.img_rows, self.img_cols)
-        imgs_train, imgs_mask_train = mydata.load_my_train_data()
-        imgs_mask_train = to_categorical(imgs_mask_train, num_classes=2)
+        imgs_train, imgs_mask_train = mydata.load_my_train_data() #加载训练数据
+        imgs_mask_train = to_categorical(imgs_mask_train, num_classes=2)  #类别onehot编码
         return imgs_train, imgs_mask_train
-
+    #加载测试数据
     def load_test_data(self):
         mydata = DataProcess(self.img_rows, self.img_cols)
-        imgs_test = mydata.load_test_data()
+        imgs_test = mydata.load_test_data() #
         return imgs_test
-
+    #定义unet网络
     def get_unet(self):
-        inputs = Input((self.img_rows, self.img_cols, 1))
-
+        inputs = Input((self.img_rows, self.img_cols, 1)) #输入数据
+        #第一阶段
         conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
         print(conv1.shape)
         conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
         print(conv1.shape)
-        pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
+        pool1 = MaxPooling2D(pool_size=(2, 2))(conv1) #尺寸减半，stride=None 默认stride=poolingsize
         print(pool1.shape)
         print('\n')
-
+        #第二阶段
         conv2 = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool1)
         print(conv2.shape)
         conv2 = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
@@ -55,7 +55,7 @@ class myUnet(object):
         pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
         print(pool2.shape)
         print('\n')
-
+        #第三阶段
         conv3 = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool2)
         print(conv3.shape)
         conv3 = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
@@ -63,7 +63,7 @@ class myUnet(object):
         pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
         print(pool3.shape)
         print('\n')
-
+        #第四阶段
         conv4 = Conv2D(512, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool3)
         print(conv4.shape)
         conv4 = Conv2D(512, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
@@ -72,18 +72,18 @@ class myUnet(object):
         pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
         print(pool4.shape)
         print('\n')
-
+        #第五阶段，u 底部
         conv5 = Conv2D(1024, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool4)
         print(conv5.shape)
         conv5 = Conv2D(1024, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
         print(conv5.shape)
         drop5 = Dropout(0.5)(conv5)
         print('\n')
-
+        #谷底上升 upsample 上采样
         up6 = Conv2D(512, 2, activation='relu', padding='same', kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(drop5))
         print(up6.shape)
         print(drop4.shape)
-        merge6 = merge([drop4, up6], mode='concat', concat_axis=3)
+        merge6 = merge([drop4, up6], mode='concat', concat_axis=3) #在channel维度整合
         print('merge: ')
         print(merge6.shape)
         conv6 = Conv2D(512, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge6)
@@ -110,23 +110,24 @@ class myUnet(object):
         # conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
         conv10 = Softmax()(conv9)
         print(conv10.shape)
-
+        #调用model，建立模型
         model = Model(input=inputs, output=conv10)
-
+        #设置模型训练需要的优化器，loss 度量标准
         model.compile(optimizer=Adam(lr=1e-4), loss='binary_crossentropy', metrics=['accuracy'])
         print('model compile')
         return model
-
+    #定义训练函数
     def train(self):
         print("loading data")
         imgs_train, imgs_mask_train = self.load_train_data()
         print("loading data done")
-        model = self.get_unet()
+        model = self.get_unet() #建立模型
         print("got unet")
 
         # 保存的是模型和权重,
         model_checkpoint = ModelCheckpoint('../data_set/unet.hdf5', monitor='loss', verbose=1, save_best_only=True)
         print('Fitting model...')
+        #model.fit 执行数据训练拟合操作
         model.fit(x=imgs_train, y=imgs_mask_train, validation_split=0.2, batch_size=1, epochs=1, verbose=1, shuffle=True,
                   callbacks=[model_checkpoint])
 
